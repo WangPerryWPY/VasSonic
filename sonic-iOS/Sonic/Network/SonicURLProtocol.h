@@ -20,6 +20,12 @@
 #import <Foundation/Foundation.h>
 
 /** SubClass NSURLProtocol to intercept the webView request */
-@interface SonicURLProtocol : NSURLProtocol
+@interface SonicURLProtocolWorker : NSObject
+
++ (instancetype)shareInstance;
+
+- (BOOL)canInitWithRequest:(NSURLRequest *)request;
+
+- (void)startLoadingWithProtocol:(NSURLProtocol *)protocol;
 
 @end

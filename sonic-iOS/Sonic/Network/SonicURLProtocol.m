@@ -27,9 +27,22 @@
 #import "SonicUtil.h"
 #import "SonicResourceLoader.h"
 
-@implementation SonicURLProtocol
+static NSString *const kSonicURLClientActionDataKey = @"data";
+static NSString *const kSonicURLClientActionProtocolKey = @"protocol";
 
-+ (BOOL)canInitWithRequest:(NSURLRequest *)request
+@implementation SonicURLProtocolWorker
+
++ (instancetype)shareInstance
+{
+    static SonicURLProtocolWorker *worker = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        worker = [[SonicURLProtocolWorker alloc] init];
+    });
+    return worker;
+}
+
+- (BOOL)canInitWithRequest:(NSURLRequest *)request
 {
     NSString *value = [request.allHTTPHeaderFields objectForKey:SonicHeaderKeyLoadType];
     if (value.length != 0 && [value isEqualToString:SonicHeaderValueWebviewLoad]) {
@@ -55,83 +68,93 @@
     return NO;
 }
 
-+ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request
-{
-    return request;
-}
-
-- (void)startLoading
+- (void)startLoadingWithProtocol:(NSURLProtocol *)protocol
 {    
     NSThread *currentThread = [NSThread currentThread];
     
     __weak typeof(self) weakSelf = self;
     
-    NSString * sessionID = sonicSessionID(self.request.mainDocumentURL.absoluteString);
+    NSString * sessionID = sonicSessionID(protocol.request.mainDocumentURL.absoluteString);
     SonicSession *session = [[SonicEngine sharedEngine] sessionById:sessionID];
     
-    if ([session.resourceLoader canInterceptResourceWithUrl:self.request.URL.absoluteString]) {
+    if ([session.resourceLoader canInterceptResourceWithUrl:protocol.request.URL.absoluteString]) {
         
-        SonicLogEvent(@"protocol resource did start loading :%@",self.request.debugDescription);
+        SonicLogEvent(@"protocol resource did start loading :%@", protocol.request.debugDescription);
 
         SonicSession *session = [[SonicEngine sharedEngine] sessionById:sessionID];
         
-        [session.resourceLoader preloadResourceWithUrl:self.request.URL.absoluteString withProtocolCallBack:^(NSDictionary *param) {
-            [weakSelf performSelector:@selector(callClientActionWithParams:) onThread:currentThread withObject:param waitUntilDone:NO];
+        [session.resourceLoader preloadResourceWithUrl:protocol.request.URL.absoluteString withProtocolCallBack:^(NSDictionary *param) {
+            NSMutableDictionary *sonicParams = [NSMutableDictionary dictionary];
+            if (protocol)
+            {
+                sonicParams[kSonicURLClientActionProtocolKey] = protocol;
+            }
+            if (param)
+            {
+                sonicParams[kSonicURLClientActionDataKey] = param;
+            }
+            [weakSelf performSelector:@selector(callClientActionWithParams:) onThread:currentThread withObject:[sonicParams copy] waitUntilDone:NO];
         }];
         
-    }else{
+    }
+    else
+    {
        
-        NSString *sessionID = [self.request valueForHTTPHeaderField:SonicHeaderKeySessionID];
+        NSString *sessionID = [protocol.request valueForHTTPHeaderField:SonicHeaderKeySessionID];
 
         [[SonicEngine sharedEngine] registerURLProtocolCallBackWithSessionID:sessionID completion:^(NSDictionary *param) {
-            
-            [weakSelf performSelector:@selector(callClientActionWithParams:) onThread:currentThread withObject:param waitUntilDone:NO];
-            
+            NSMutableDictionary *sonicParams = [NSMutableDictionary dictionary];
+            if (protocol)
+            {
+                sonicParams[kSonicURLClientActionProtocolKey] = protocol;
+            }
+            if (param)
+            {
+                sonicParams[kSonicURLClientActionDataKey] = param;
+            }
+            [weakSelf performSelector:@selector(callClientActionWithParams:) onThread:currentThread withObject:[sonicParams copy] waitUntilDone:NO];
+
         }];
         
     }
 }
 
-- (void)stopLoading
-{
-    
-}
-
-- (void)dealloc
-{
-    [super dealloc];
-}
-
 #pragma mark - Client Action
-- (void)callClientActionWithParams:(NSDictionary *)params
+- (void)callClientActionWithParams:(NSDictionary *)sonicParams
 {
+    NSDictionary *params = sonicParams[kSonicURLClientActionDataKey];
+    NSURLProtocol *protocol = sonicParams[kSonicURLClientActionProtocolKey];
+    if (!protocol)
+    {
+        return;
+    }
     SonicURLProtocolAction action = [params[kSonicProtocolAction]integerValue];
     switch (action) {
         case SonicURLProtocolActionRecvResponse:
         {
             NSHTTPURLResponse *resp = params[kSonicProtocolData];
-            [self.client URLProtocol:self didReceiveResponse:resp cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+            [protocol.client URLProtocol:protocol didReceiveResponse:resp cacheStoragePolicy:NSURLCacheStorageNotAllowed];
         }
             break;
         case SonicURLProtocolActionLoadData:
         {
             NSData *recvData = params[kSonicProtocolData];
             if (recvData.length > 0) {
-                [self.client URLProtocol:self didLoadData:recvData];
+                [protocol.client URLProtocol:protocol didLoadData:recvData];
                 SonicLogEvent(@"protocol did load data length:%ld",recvData.length);
             }
         }
             break;
         case SonicURLProtocolActionDidSuccess:
         {
-            [self.client URLProtocolDidFinishLoading:self];
-            SonicLogEvent(@"protocol did finish loading request:%@",self.request.debugDescription);
+            [protocol.client URLProtocolDidFinishLoading:protocol];
+            SonicLogEvent(@"protocol did finish loading request:%@",protocol.request.debugDescription);
         }
             break;
         case SonicURLProtocolActionDidFaild:
         {
             NSError *err = params[kSonicProtocolData];
-            [self.client URLProtocol:self didFailWithError:err];
+            [protocol.client URLProtocol:protocol didFailWithError:err];
         }
             break;
     }
