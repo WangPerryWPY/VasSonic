@@ -361,13 +361,13 @@ typedef NS_ENUM(NSUInteger, SonicCacheType) {
     }
     
     NSMutableDictionary *dynamicData = [NSMutableDictionary dictionaryWithDictionary:cacheItem.dynamicData];
-    NSDictionary *mergeResult = [SonicUtil mergeDynamicData:dataDict[kSonicDataFieldName] withOriginData:dynamicData];
-    
-    if ([mergeResult[@"diff"] count] == 0) {
-        NSMutableDictionary *tmpResult = [[mergeResult mutableCopy]autorelease];
-        [tmpResult setObject:dataDict[kSonicDataFieldName] forKey:@"diff"];
-        mergeResult = tmpResult;
-    }
+//    NSDictionary *mergeResult = [SonicUtil mergeDynamicData:dataDict[kSonicDataFieldName] withOriginData:dynamicData];
+//
+//    if ([mergeResult[@"diff"] count] == 0) {
+//        NSMutableDictionary *tmpResult = [[mergeResult mutableCopy]autorelease];
+//        [tmpResult setObject:dataDict[kSonicDataFieldName] forKey:@"diff"];
+//        mergeResult = tmpResult;
+//    }
     
     NSData *htmlData = nil;
     if (htmlString.length > 0) {
@@ -375,15 +375,16 @@ typedef NS_ENUM(NSUInteger, SonicCacheType) {
     }else{
         //merge new dynamic data with template string to create new HTML cache
         NSMutableString *html = [NSMutableString stringWithString:cacheItem.templateString];
-        for (NSString *key in dynamicData.allKeys) {
-            [html replaceOccurrencesOfString:key withString:dynamicData[key] options:NSCaseInsensitiveSearch range:NSMakeRange(0, html.length)];
-        }
+//        for (NSString *key in dynamicData.allKeys) {
+//            [html replaceOccurrencesOfString:key withString:dynamicData[key] options:NSCaseInsensitiveSearch range:NSMakeRange(0, html.length)];
+//        }
         htmlData = [html dataUsingEncoding:NSUTF8StringEncoding];
     }
     
     cacheItem.dynamicData = dynamicData;
     cacheItem.htmlData = htmlData;
-    cacheItem.diffData = mergeResult[@"diff"];
+    // diffData存储差异数据，每次存储完整数据即可
+    cacheItem.diffData = dataDict[kSonicDataFieldName];
     NSMutableDictionary *config = [NSMutableDictionary dictionaryWithDictionary:[self createConfigFromResponseHeaders:headers]];
     NSString *sha1 = dataDict[@"html-sha1"];
     if (sha1.length == 0) {
@@ -398,7 +399,6 @@ typedef NS_ENUM(NSUInteger, SonicCacheType) {
     cacheItem.config = config;
     NSDictionary *filterResponseHeaders = [self filterResponseHeaders:headers];
     cacheItem.cacheResponseHeaders = filterResponseHeaders;
-    
     //event
     NSString *htmlLog = [[[NSString alloc]initWithData:cacheItem.htmlData encoding:NSUTF8StringEncoding]autorelease];
     NSDictionary *diff = cacheItem.diffData ? cacheItem.diffData:[NSDictionary dictionary];

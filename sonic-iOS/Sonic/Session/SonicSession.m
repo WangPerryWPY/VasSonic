@@ -194,7 +194,8 @@
         if (self.delegate && [self.delegate respondsToSelector:@selector(sessionWillRequest:)]) {
             [self.delegate sessionWillRequest:self];
         }
-        [self syncCookies];
+        // cookie不做同步，交给QB做
+//        [self syncCookies];
     };
     
     if ([NSThread mainThread]) {
@@ -358,10 +359,11 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
       [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_SessionRecvResponse withEventInfo:@{@"statusCode":@(resposneCode),@"headers":response.allHeaderFields,@"url":self.url,@"sessionID":self.sessionID}];
       
         //sync cookie to NSHTTPCookieStorage
-        dispatchToMain(^{
-            NSArray *cookiesFromResp = [NSHTTPCookie cookiesWithResponseHeaderFields:response.allHeaderFields forURL:response.URL];
-            [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:cookiesFromResp forURL:response.URL mainDocumentURL:self.sonicServer.request.mainDocumentURL];
-        });
+      // cookie不做同步，交给QB做
+//        dispatchToMain(^{
+//            NSArray *cookiesFromResp = [NSHTTPCookie cookiesWithResponseHeaderFields:response.allHeaderFields forURL:response.URL];
+//            [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:cookiesFromResp forURL:response.URL mainDocumentURL:self.sonicServer.request.mainDocumentURL];
+//        });
         if (self.isFirstLoad) {
             [self firstLoadRecieveResponse:response];
         }else{
@@ -463,6 +465,7 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
     [self checkAutoCompletionAction];
 }
 
+// 第一次加载的处理
 - (void)dealWithFirstLoad
 {
     if ([self.sonicServer isSonicResponse]) {
@@ -710,6 +713,7 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
             [[SonicCache shareCache] saveResponseHeaders:self.sonicServer.response.allHeaderFields withSessionID:self.sessionID];
         }
             break;
+        // 存在数据或者模版上的更新
         case 200:
         {
             if (![self.sonicServer isSonicResponse]) {
@@ -785,6 +789,7 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
     }
 }
 
+// 处理模版更新的情况
 - (void)dealWithTemplateChange
 {
     NSDictionary *serverResult = [self.sonicServer sonicItemForCache];
@@ -823,6 +828,7 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
     }
 }
 
+// 处理数据更新情况
 - (void)dealWithDataUpdate
 {
     NSString *htmlString = nil;

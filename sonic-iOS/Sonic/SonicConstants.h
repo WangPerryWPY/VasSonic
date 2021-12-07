@@ -253,9 +253,9 @@ typedef NS_ENUM(NSInteger, SonicErrorType) {
 #define kSonicDiffFieldName                 @"diff"
 
 /**
- * HTTP Header:If-None-Match
+ * HTTP Header: etag
  */
-#define HTTPHeaderKeyIfNoneMatch @"If-None-Match"
+#define HTTPHeaderKeyIfNoneMatch @"etag"
 
 /**
  * HTTP Header:User-Agent

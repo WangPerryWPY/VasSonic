@@ -223,7 +223,7 @@
 				TargetAttributes = {
 					546B78401F0106C8003F08AE = {
 						CreatedOnToolsVersion = 8.2;
-						DevelopmentTeam = Q4ZJ4XF89A;
+						DevelopmentTeam = 7YBRZSVLTA;
 						ProvisioningStyle = Manual;
 					};
 					546B78591F0106C8003F08AE = {
@@ -238,6 +238,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -416,18 +417,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Ming Huang (RMP465DM7N)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Ming Huang (RMP465DM7N)";
+				CODE_SIGN_IDENTITY = "Apple Development: YANG JINFANG (W5WQ964U2P)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development: YANG JINFANG (W5WQ964U2P)";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = Q4ZJ4XF89A;
+				DEVELOPMENT_TEAM = 7YBRZSVLTA;
 				INFOPLIST_FILE = SonicSample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tencent.SonicSample;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tencent.ios.qqmusic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "708a394e-c58f-44b5-af84-8daba31e4d18";
-				PROVISIONING_PROFILE_SPECIFIER = VasQQDev;
+				PROVISIONING_PROFILE_SPECIFIER = iosqmusic201029;
 			};
 			name = Debug;
 		};
@@ -440,7 +441,7 @@
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = SonicSample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tencent.SonicSample;

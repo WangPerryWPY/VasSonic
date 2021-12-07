@@ -32,7 +32,7 @@
     // Override point for customization after application launch.
     
     //NSURLProtocol
-    [NSURLProtocol registerClass:[SonicURLProtocol class]];
+//    [NSURLProtocol registerClass:[SonicURLProtocol class]];
     
     RootViewController *rootVC = [[RootViewController alloc]init];
     UINavigationController *rootNav = [[UINavigationController alloc]initWithRootViewController:rootVC];

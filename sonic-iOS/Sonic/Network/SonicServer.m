@@ -365,7 +365,7 @@ static NSLock *sonicRequestClassLock;
 
 - (BOOL)isFirstLoadRequest
 {
-    return [self.request.allHTTPHeaderFields objectForKey:@"If-None-Match"].length == 0;
+    return [self.request.allHTTPHeaderFields objectForKey:@"etag"].length == 0;
 }
 
 - (BOOL)isSonicResponse
@@ -452,6 +452,7 @@ static NSLock *sonicRequestClassLock;
 {
     dispatch_block_t opBlock = ^{
         self.isCompletion = YES;
+        // 不启用本地缓存模式不会走入，不做处理
         if (self.isInLocalServerMode) {
             
             do {
