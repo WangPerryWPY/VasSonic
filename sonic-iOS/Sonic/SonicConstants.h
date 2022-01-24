@@ -272,3 +272,6 @@ typedef NS_ENUM(NSInteger, SonicErrorType) {
  */
 #define HTTPHeaderKeyContentType @"Content-Type"
 
+
+#define SonicHeaderKeySonicMode @"sonicmode"
+

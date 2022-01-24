@@ -31,8 +31,9 @@
 #import "SonicEngine.h"
 #import "SonicResourceLoader.h"
 #import "SonicEventStatistics.h"
+#import "SonicStatisticsData.h"
 
-@interface SonicSession ()
+@interface SonicSession () <SonicEventStatisticsObserver>
 
 @property (nonatomic,retain)NSDictionary  *cacheConfigHeaders;
 
@@ -46,6 +47,9 @@
 @property (nonatomic,retain)NSDictionary  *cacheResponseHeaders;
 @property (nonatomic,assign)BOOL didFinishCacheRead;
 @property (nonatomic,assign)BOOL isUpdate;
+
+/// 统计上报 - new
+@property (nonatomic, strong) SonicStatisticsData *statisticsData;
 
 /**
  * Use to hold all block operation in sonic session queue
@@ -104,6 +108,7 @@
         self.url = aUrl;
         _configuration = [aConfiguration retain];
         _sessionID = [sonicSessionID(aUrl) copy];
+        [[SonicEventStatistics shareStatistics] addEventObserver:self];
         [self setupSonicServer];
         [self setupData];
     }
@@ -397,7 +402,7 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
         //event
         NSInteger errorCode = error.code;
         [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_SessionHttpError withEventInfo:@{@"code":@(errorCode),@"msg":error.debugDescription,@"url":self.url,@"sessionID":self.sessionID}];
-        
+        [self updateStatisticsForServerFailedWithError:error];
         self.isCompletion = YES;
         if (self.isFirstLoad) {
             [self firstLoadDidFaild:error];
@@ -414,7 +419,7 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
     dispatch_block_t opBlock = ^{
         
         self.isCompletion = YES;
-        
+        [self updateStatisticsForServerSuccess];
         if (self.isFirstLoad) {
             [self firstLoadDidSuccess];
         } else {
@@ -918,5 +923,134 @@ NSString * dispatchToSonicSessionQueue(dispatch_block_t block)
     NSString *tempChangeTag = [self.sonicServer responseHeaderForKey:SonicHeaderKeyTemplateChange];
     return [tempChangeTag boolValue];
 }
+
+- (SonicStatisticsData *)statisticsData
+{
+    if (!_statisticsData)
+    {
+        _statisticsData = [[SonicStatisticsData alloc] init];
+    }
+    return _statisticsData;
+}
+
+- (void)handleEvent:(SonicStatisticsEvent)event withEventInfo:(NSDictionary *)info
+{
+    switch (event)
+    {
+        case SonicStatisticsEvent_TrimCache:
+        {
+            self.statisticsData.isTrimCache = YES;
+        }
+            break;
+        case SonicStatisticsEvent_ReadCacheFailed:
+        {
+            self.statisticsData.readSonicCacheCode = [self getCacheOperationErrorCode:info];
+        }
+            break;
+        case SonicStatisticsEvent_WriteCacheFailed:
+        {
+            self.statisticsData.writeSonicCacheCode = [self getCacheOperationErrorCode:info];
+         }
+            break;
+        case SonicStatisticsEvent_SessionDidLoadLocalCache:
+        {
+            // 先取缓存后抛取的事件
+            if (self.statisticsData.readSonicCacheCode == SonicCacheErrorCode_Idle)
+            {
+                self.statisticsData.readSonicCacheCode = SonicCacheErrorCode_Success;
+            }
+        }
+            break;
+        case SonicStatisticsEvent_SessionDidSaveCache:
+        {
+            // 先抛存的事件后存缓存
+            self.statisticsData.writeSonicCacheCode = SonicCacheErrorCode_Success;
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+- (void)updateStatisticsForServerSuccess
+{
+    NSInteger httpCode = self.sonicServer.response.statusCode;
+    self.statisticsData.rspCode = httpCode;
+    if (![self.sonicServer isSonicResponse])
+    {
+        self.statisticsData.resultCode = SonicResultCode_RspIllegal;
+    }
+    else
+    {
+        if (self.isFirstLoad)
+        {
+            self.statisticsData.resultCode = SonicResultCode_FirstLoad;
+        }
+        else
+        {
+            switch (httpCode)
+            {
+                case 200:
+                {
+                    if ([self isTemplateChange])
+                    {
+                        self.statisticsData.resultCode = SonicResultCode_TemplateChange;
+                    }
+                    else
+                    {
+                        self.statisticsData.resultCode = SonicResultCode_DataUpdate;
+                    }
+                }
+                    break;
+                case 304:
+                    self.statisticsData.resultCode = SonicResultCode_NotModified;
+                    break;
+                default:
+                    self.statisticsData.resultCode = SonicResultCode_HTTPFailed;
+                    break;
+            }
+        }
+    }
+    self.statisticsData.sonicMode = [self.sonicServer responseHeaderForKey:SonicHeaderKeySonicMode].integerValue;
+    
+}
+
+- (void)updateStatisticsForServerFailedWithError:(NSError *)error
+{
+    self.statisticsData.rspCode = error.code;
+    self.statisticsData.resultCode = SonicResultCode_HTTPFailed;
+}
+
+- (SonicCacheErrorCode)getCacheOperationErrorCode:(NSDictionary *)eventInfo
+{
+    id errorCode = eventInfo[@"errorCode"];
+    NSNumber *errorCodeNum = nil;
+    if ([errorCode isKindOfClass:[NSNumber class]])
+    {
+        errorCodeNum = errorCode;
+    }
+    SonicCacheErrorCode resultCode = SonicCacheErrorCode_Idle;
+    switch (errorCodeNum.integerValue) {
+        case 1:
+        {
+            resultCode = SonicCacheErrorCode_DataIllegal;
+        }
+            break;
+        case 2:
+        {
+            resultCode = SonicCacheErrorCode_FileFailed;
+        }
+            break;
+        case 3:
+        {
+            resultCode = SonicCacheErrorCode_VerifyShaFailed;
+        }
+            break;
+        default:
+            break;
+    }
+    return resultCode;
+};
+
 
 @end

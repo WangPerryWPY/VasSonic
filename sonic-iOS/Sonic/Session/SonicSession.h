@@ -22,7 +22,7 @@
 #import "SonicConstants.h"
 #import "SonicSessionConfiguration.h"
 
-@class SonicResourceLoader;
+@class SonicResourceLoader, SonicStatisticsData;
 
 /**
  * SonicSession use this callback to transfer network data to SonicURLProtocol.
@@ -99,6 +99,8 @@ typedef void(^SonicSessionCompleteCallback) (NSString *sessionID);
 @property (nonatomic,readonly)SonicSessionConfiguration *configuration;
 
 @property (nonatomic,readonly)SonicResourceLoader *resourceLoader;
+/// 统计上报 - new
+@property (nonatomic, strong, readonly) SonicStatisticsData *statisticsData;
 
 /**
  * Register a SonicConnection Class to provide network data.

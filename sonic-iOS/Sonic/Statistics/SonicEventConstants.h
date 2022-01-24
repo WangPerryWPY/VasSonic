@@ -75,4 +75,15 @@ typedef NS_ENUM(NSUInteger, SonicStatisticsEvent) {
     
     //Sonic cache did reach the maximun limit size of cache directory
     SonicStatisticsEvent_TrimCache,
+    
+    // Sonic读取缓存失败，errorCode表示错误码
+    // 1代表文件格式非法;
+    // 2代表文件读取失败;
+    // 3代表sha校验失败
+    SonicStatisticsEvent_ReadCacheFailed,
+    
+    // Sonic写缓存失败，errorCode表示错误码
+    // 1代表文件格式非法;
+    // 2代表文件写入失败;
+    SonicStatisticsEvent_WriteCacheFailed,
 };

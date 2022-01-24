@@ -52,6 +52,8 @@
 		54BF62F92008E252007129D5 /* SonicURLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 54BF62F32008E251007129D5 /* SonicURLProtocol.m */; };
 		54C2E2D21F6B79CF003EC647 /* SonicDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = 54C2E2D01F6B79CF003EC647 /* SonicDatabase.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		54C2E2D31F6B79CF003EC647 /* SonicDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = 54C2E2D11F6B79CF003EC647 /* SonicDatabase.m */; };
+		A0EC561F2781BEFA00DFDF01 /* SonicStatisticsData.h in Headers */ = {isa = PBXBuildFile; fileRef = A0EC561D2781BEFA00DFDF01 /* SonicStatisticsData.h */; };
+		A0EC56202781BEFA00DFDF01 /* SonicStatisticsData.m in Sources */ = {isa = PBXBuildFile; fileRef = A0EC561E2781BEFA00DFDF01 /* SonicStatisticsData.m */; };
 		E43E03461F618182000F30ED /* SonicSessionConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = E43E03441F618182000F30ED /* SonicSessionConfiguration.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E43E03471F618182000F30ED /* SonicSessionConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = E43E03451F618182000F30ED /* SonicSessionConfiguration.m */; };
 /* End PBXBuildFile section */
@@ -102,6 +104,8 @@
 		54C2E2D11F6B79CF003EC647 /* SonicDatabase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SonicDatabase.m; sourceTree = "<group>"; };
 		54E535A11F694A3A00A98AFE /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		54E535A31F69523500A98AFE /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
+		A0EC561D2781BEFA00DFDF01 /* SonicStatisticsData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SonicStatisticsData.h; sourceTree = "<group>"; };
+		A0EC561E2781BEFA00DFDF01 /* SonicStatisticsData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SonicStatisticsData.m; sourceTree = "<group>"; };
 		E43E03441F618182000F30ED /* SonicSessionConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonicSessionConfiguration.h; sourceTree = "<group>"; };
 		E43E03451F618182000F30ED /* SonicSessionConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SonicSessionConfiguration.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -219,6 +223,7 @@
 		54BF62E0200857DE007129D5 /* Statistics */ = {
 			isa = PBXGroup;
 			children = (
+				A0EC561C2781BED200DFDF01 /* New */,
 				54BF62E5200858B6007129D5 /* SonicEventStatistics.h */,
 				54BF62E6200858B6007129D5 /* SonicEventStatistics.m */,
 				54BF62E920085918007129D5 /* SonicEventConstants.h */,
@@ -248,6 +253,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		A0EC561C2781BED200DFDF01 /* New */ = {
+			isa = PBXGroup;
+			children = (
+				A0EC561D2781BEFA00DFDF01 /* SonicStatisticsData.h */,
+				A0EC561E2781BEFA00DFDF01 /* SonicStatisticsData.m */,
+			);
+			path = New;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -262,6 +276,7 @@
 				546B78331F0105F6003F08AE /* SonicEngine.h in Headers */,
 				546B78321F0105F6003F08AE /* SonicCacheItem.h in Headers */,
 				54BF62F42008E252007129D5 /* SonicConnection.h in Headers */,
+				A0EC561F2781BEFA00DFDF01 /* SonicStatisticsData.h in Headers */,
 				54BF62EB20085918007129D5 /* SonicEventConstants.h in Headers */,
 				542F99F91FE7701B00598258 /* SonicResourceLoadOperation.h in Headers */,
 				54BF62E7200858B6007129D5 /* SonicEventStatistics.h in Headers */,
@@ -343,6 +358,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 546B78031F0105AA003F08AE;
@@ -409,6 +425,7 @@
 				54BF62F72008E252007129D5 /* SonicServer.m in Sources */,
 				546B78281F0105F6003F08AE /* SonicCache.m in Sources */,
 				E43E03471F618182000F30ED /* SonicSessionConfiguration.m in Sources */,
+				A0EC56202781BEFA00DFDF01 /* SonicStatisticsData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

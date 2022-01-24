@@ -615,17 +615,25 @@ void dealInFileQueue(dispatch_block_t block)
 {
     if (![self isAllCacheExist:item.sessionID]) {
         [self removeFileCacheOnly:item.sessionID];
+        [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_ReadCacheFailed withEventInfo:@{@"errorCode": @(1)}];
         return;
     }
     
     NSData *htmlData = [NSData dataWithContentsOfFile:[self filePathWithType:SonicCacheTypeHtml sessionID:item.sessionID]];
+    // 读取失败
+    if (htmlData.length <= 0)
+    {
+        [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_ReadCacheFailed withEventInfo:@{@"errorCode": @(3)}];
+    }
     NSDictionary *config = [self.database queryAllKeysWithSessionID:item.sessionID];
     NSDictionary *cacheHeaders = [NSDictionary dictionaryWithContentsOfFile:[self filePathWithType:SonicCacheTypeResponseHeader sessionID:item.sessionID]];
 
     NSString *sha1 = config[kSonicSha1];
     NSString *htmlSha1 = getDataSha1(htmlData);
+    // 校验文件sha是否合法
     if (![sha1 isEqualToString:htmlSha1]) {
         [self removeFileCacheOnly:item.sessionID];
+        [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_ReadCacheFailed withEventInfo:@{@"errorCode": @(2)}];
     }else{
         item.htmlData = htmlData;
         item.config = config;
@@ -727,17 +735,20 @@ void dealInFileQueue(dispatch_block_t block)
 - (void)saveHtmlData:(NSData *)htmlData withConfig:(NSDictionary *)config withTemplate:(NSString *)templateString dynamicData:(NSDictionary *)dynamicData withResponseHeaders:(NSDictionary *)responseHeaders withSessionID:(NSString *)sessionID isUpdate:(BOOL)isUpdate
 {
     if (!htmlData || config.count == 0) {
+        [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(1)}];
         return;
     }
     
     //if is first time to save data, the templateString must't be nil
     if (!isUpdate && templateString.length == 0) {
+        [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(1)}];
         return;
     }
     
     //if the root cache path didn't created,then we create it
     if (_rootCachePath.length == 0) {
         if (![self setupCacheDirectory]) {
+            [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(1)}];
             return;
         }
     }
@@ -747,6 +758,7 @@ void dealInFileQueue(dispatch_block_t block)
         NSString *htmlPath = [self filePathWithType:SonicCacheTypeHtml sessionID:sessionID];
         BOOL isSuccess = [htmlData writeToFile:htmlPath atomically:YES];
         if (!isSuccess) {
+            [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(2)}];
             return;
         }
     }
@@ -757,6 +769,7 @@ void dealInFileQueue(dispatch_block_t block)
         NSString *tempPath = [self filePathWithType:SonicCacheTypeTemplate sessionID:sessionID];
         BOOL isSuccess = [templateData writeToFile:tempPath atomically:YES];
         if (!isSuccess) {
+            [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(2)}];
             [self removeFileCacheOnly:sessionID];
             return;
         }
@@ -767,6 +780,7 @@ void dealInFileQueue(dispatch_block_t block)
         NSString *dataPath = [self filePathWithType:SonicCacheTypeData sessionID:sessionID];
         BOOL isSuccess = [dynamicData writeToFile:dataPath atomically:YES];
         if (!isSuccess) {
+            [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(2)}];
             [self removeFileCacheOnly:sessionID];
             return;
         }
@@ -777,6 +791,7 @@ void dealInFileQueue(dispatch_block_t block)
         NSString *rspHeaderPath = [self filePathWithType:SonicCacheTypeResponseHeader sessionID:sessionID];
         BOOL isSuccess = [responseHeaders writeToFile:rspHeaderPath atomically:YES];
         if (!isSuccess) {
+            [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(2)}];
             [self removeFileCacheOnly:sessionID];
             return;
         }
@@ -785,6 +800,7 @@ void dealInFileQueue(dispatch_block_t block)
     //save the config data
     BOOL isSuccess = [self.database insertWithKeyAndValue:config withSessionID:sessionID];
     if (!isSuccess) {
+        [[SonicEventStatistics shareStatistics] addEvent:SonicStatisticsEvent_WriteCacheFailed withEventInfo:@{@"errorCode": @(2)}];
         [self removeFileCacheOnly:sessionID];
     }
 }
